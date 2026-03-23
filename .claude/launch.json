@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Backend API (Express)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "cwd": "backend"
+    },
+    {
+      "name": "Expo App (Mobile)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "port": 8081,
+      "cwd": "app"
+    }
+  ]
+}

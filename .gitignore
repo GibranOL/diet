@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+build/
+.expo/
+
+# Environment variables (NEVER commit these)
+.env
+.env.local
+.env.production
+backend/.env
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Temporary upload files
+backend/tmp/
+
+# IDE
+.vscode/
+.idea/
