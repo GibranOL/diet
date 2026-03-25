@@ -121,11 +121,11 @@ function inferMeta(name: string): ResolvedMeta {
       lower
     );
   const isFruta =
-    /manzana|plátano|platano|naranja|fresa|mango|piña|uva|kiwi|pera|durazno|fruta/i.test(
+    /manzana|plátano|platano|naranja|fresa|mango|piña|uva|kiwi|pera|durazno|guayaba|papaya|ciruela|chabacano|fruta/i.test(
       lower
     );
   const isProteina =
-    /pollo|res|carne|cerdo|pavo|atún|atun|salmón|salmon|huevo|tofu|tempeh|proteina/i.test(
+    /pollo|res|carne|cerdo|pavo|atún|atun|salmón|salmon|huevo|tofu|tempeh|proteina|pescado|tilapia|trucha|sardina|camaron|camarón|pulpo/i.test(
       lower
     );
   const isLacteo =
@@ -134,7 +134,7 @@ function inferMeta(name: string): ResolvedMeta {
     /arroz|avena|pasta|frijol|lenteja|garbanzo|quinoa|pan|tortilla|cereal|harina|granos/i.test(
       lower
     );
-  const isBebida = /agua|jugo|té|te|cafe|café|bebida/i.test(lower);
+  const isBebida = /agua|jugo|\bté\b|\bte\b|\bcafe\b|\bcafé\b|refresco|bebida/i.test(lower);
 
   if (isVerdura)
     return { category: "Verduras", perishable: true, pantry_days: null, fridge_days: 7 };

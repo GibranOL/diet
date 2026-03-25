@@ -89,6 +89,16 @@ const QUANTITY_RE = new RegExp(
 // Parenthesised quantity-alt like "(2 piezas)" or "(1/2 taza)"
 const QUANTITY_ALT_RE = /\(([^)]+)\)/;
 
+// Comma-format ingredient: finds quantity+unit anywhere in the line.
+// Matches the real Mundo Nutrition format: "Tortilla de harina integral, 64g, 2 piezas"
+const COMMA_INGREDIENT_RE = new RegExp(
+  `(\\d+(?:[.,]\\d+)?)\\s*(${UNIT_PATTERN})\\b`,
+  "i"
+);
+
+// Footer/garbage lines to skip (URL, timestamp, nutritionist footer)
+const GARBAGE_LINE_RE = /^https?:\/\/|\d{2}\/\d{2}\/\d{2},\s*\d+:\d+|^L\.N\.\s|^Document$/i;
+
 // ─── Date Parsing ────────────────────────────────────────────────────────────
 
 /**
@@ -142,6 +152,43 @@ function parseSpanishDate(raw: string, referenceYear?: number): string {
   return `${year}-${mm}-${dd}`;
 }
 
+// ─── Comma-format Ingredient Helpers ─────────────────────────────────────────
+
+/**
+ * Returns true when a line contains a quantity+unit, indicating it is an
+ * ingredient line in the Mundo Nutrition comma format ("Name, 100g, 2 piezas").
+ */
+function isCommaIngredientLine(line: string): boolean {
+  return COMMA_INGREDIENT_RE.test(line);
+}
+
+/**
+ * Parse an ingredient in the Mundo Nutrition comma format:
+ *   "Tortilla de harina integral, 64g, 2 piezas"
+ *   "Espinaca, cruda, 30g, ½ taza"
+ *   "Yogurt Griego Fage, 170ml, 1 unidad"
+ *
+ * Strategy: locate the first quantity+unit token anywhere in the string.
+ * Everything before it (minus trailing commas/spaces) is the name.
+ * Everything after it (minus leading commas/spaces) is the alt quantity.
+ */
+function parseCommaIngredientLine(text: string): RawIngredient | null {
+  const qtyMatch = text.match(COMMA_INGREDIENT_RE);
+  if (!qtyMatch) return null;
+
+  const qtyIndex = text.indexOf(qtyMatch[0]);
+  const quantity = parseFloat(qtyMatch[1].replace(",", "."));
+  const unit = qtyMatch[2].toLowerCase();
+
+  const namePart = text.slice(0, qtyIndex).replace(/[,\s]+$/, "").trim();
+  const afterQty = text.slice(qtyIndex + qtyMatch[0].length).replace(/^[,\s]+/, "").trim();
+  const quantity_alt = afterQty || null;
+
+  if (!namePart) return null;
+
+  return { name: namePart, quantity, unit, quantity_alt, notes: null };
+}
+
 // ─── Ingredient Line Parsing ─────────────────────────────────────────────────
 
 /**
@@ -168,6 +215,12 @@ function parseSpanishDate(raw: string, referenceYear?: number): string {
  */
 function parseIngredientLine(raw: string): RawIngredient {
   let text = raw.trim().replace(/^[-•]\s*/, "");
+
+  // ── Comma-separated format (Mundo Nutrition): "Name, 100g, 2 piezas" ──────
+  if (isCommaIngredientLine(text)) {
+    const result = parseCommaIngredientLine(text);
+    if (result) return result;
+  }
 
   // Extract parenthesised alternative quantity, e.g. "(2 piezas)"
   let quantity_alt: string | null = null;
@@ -335,6 +388,9 @@ function parsePDFText(text: string): RawParsedDay[] {
     // Skip blank lines
     if (!trimmed) continue;
 
+    // Skip footer/garbage lines (URLs, timestamps, nutritionist attribution)
+    if (GARBAGE_LINE_RE.test(trimmed)) continue;
+
     // ── Date line ────────────────────────────────────────────
     if (isDateLine(trimmed)) {
       flushDay();
@@ -418,14 +474,20 @@ function parsePDFText(text: string): RawParsedDay[] {
       continue;
     }
 
-    // ── Fallback: treat as a dish name without a bullet ───────
-    // Some PDFs omit the dash for certain sections. We still want to capture
-    // the content rather than silently drop it.
+    // ── Comma-format ingredient line (Mundo Nutrition format) ──────────────
+    // e.g. "Tortilla de harina integral, 64g, 2 piezas"
+    if (isCommaIngredientLine(trimmed)) {
+      if (!currentDish) {
+        currentDish = { name: "", ingredients: [] };
+      }
+      const ingredient = parseIngredientLine(trimmed);
+      currentDish.ingredients.push(ingredient);
+      continue;
+    }
+
+    // ── Fallback: plain dish name (no bullet needed in this PDF format) ────
     flushDish();
     currentDish = { name: trimmed, ingredients: [] };
-    currentDay.warnings.push(
-      `Line parsed as dish name without bullet: "${trimmed}"`
-    );
   }
 
   // Flush any open state at end of file.

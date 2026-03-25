@@ -38,7 +38,11 @@ const CATEGORY_KEYWORDS: Record<IngredientCategory, string[]> = {
     "jamon",
     "tocino",
     "pescado",
+    "filete de pescado",
     "tilapia",
+    "trucha",
+    "sardina",
+    "pulpo",
     "pavo",
     "cordero",
   ],
@@ -80,6 +84,10 @@ const CATEGORY_KEYWORDS: Record<IngredientCategory, string[]> = {
     "kiwi",
     "papaya",
     "guayaba",
+    "ciruela",
+    "chabacano",
+    "higo",
+    "mamey",
     "limón",
     "limon",
     "mandarina",
@@ -254,9 +262,9 @@ export function suggestCategory(ingredientName: string): IngredientCategory {
       const keywords = CATEGORY_KEYWORDS[category];
       for (const keyword of keywords) {
         const normalizedKeyword = normalizeString(keyword);
-        if (normalized.includes(normalizedKeyword)) {
-          // For "leche" inside Lácteos/Bebidas, only match Lácteos if not already
-          // matched as a compound Bebidas phrase (handled by ordering above).
+        // Use word boundaries to avoid "te" matching "aceite", "filete", etc.
+        const wordRe = new RegExp(`\\b${normalizedKeyword}\\b`);
+        if (wordRe.test(normalized)) {
           return category;
         }
       }

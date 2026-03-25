@@ -186,12 +186,19 @@ app.post("/api/cooking/optimize", (req, res) => {
 // ─── Mobile UI data ───────────────────────────────────────────
 app.get("/api/screen-data", (req, res) => {
   try {
-    const date = (req.query.date as string) ?? new Date().toISOString().split("T")[0];
-    const mealDay = mealDays.find((d) => d.date === date);
+    const requestedDate = (req.query.date as string) ?? new Date().toISOString().split("T")[0];
+    let mealDay = mealDays.find((d) => d.date === requestedDate);
+
+    // Fallback: if no plan for the requested date, use the first available day
+    if (!mealDay && mealDays.length > 0) {
+      mealDay = mealDays[0];
+    }
     if (!mealDay) {
-      res.status(404).json({ error: `No meal plan for ${date}` });
+      res.status(404).json({ error: "No meal plans loaded. Upload PDFs first." });
       return;
     }
+
+    const date = mealDay.date;
 
     const defaultConstraints: EquipmentConstraints = {
       num_burners: 2,

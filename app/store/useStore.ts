@@ -49,7 +49,7 @@ export const useStore = create<DietStore>((set, get) => ({
   screenData: null,
   isLoading: false,
   error: null,
-  apiBaseUrl: 'http://localhost:3000',
+  apiBaseUrl: 'http://10.0.0.225:3000',
 
   // Synchronous actions
   setMealDays: (days) => set({ mealDays: days }),
@@ -93,7 +93,7 @@ export const useStore = create<DietStore>((set, get) => ({
       for (const uri of uris) {
         const filename = uri.split('/').pop() ?? 'upload.pdf';
         // React Native / Expo FormData accepts the object form for file blobs
-        formData.append('files', {
+        formData.append('pdfs', {
           uri,
           name: filename,
           type: 'application/pdf',
