@@ -13,12 +13,19 @@
       "supportsTablet": false
     },
     "android": {
+      "package": "com.gibranol.dieta",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       }
     },
     "plugins": [
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "812835c1-56bc-4e64-8f5a-caf27e04a81f"
+      }
+    },
+    "owner": "gibranol"
   }
 }
