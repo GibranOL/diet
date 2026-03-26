@@ -10,6 +10,7 @@ import Shopping from './screens/Shopping';
 import Inventory from './screens/Inventory';
 import Meals from './screens/Meals';
 import UploadPDF from './screens/UploadPDF';
+import MealDetail from './screens/MealDetail';
 
 // ─── Stack navigators per tab ────────────────────────────────
 
@@ -45,6 +46,7 @@ function MealsStackScreen() {
   return (
     <MealsStack.Navigator screenOptions={{ headerShown: false }}>
       <MealsStack.Screen name="MealsMain" component={Meals} />
+      <MealsStack.Screen name="MealDetail" component={MealDetail} />
     </MealsStack.Navigator>
   );
 }

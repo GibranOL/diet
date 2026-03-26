@@ -437,3 +437,10 @@ export interface UploadPDFScreenData {
   next_upload_recommended: string;
   instructions: string;
 }
+
+// ─── Navigation Types ──────────────────────────────────────
+
+export type MealsStackParamList = {
+  MealsMain: undefined;
+  MealDetail: { date: string };
+};

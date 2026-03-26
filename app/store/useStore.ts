@@ -6,6 +6,7 @@ import {
   CookingSession,
   UserPreferences,
   MobileScreenData,
+  Purchase,
 } from '../types/index';
 
 interface DietStore {
@@ -32,6 +33,8 @@ interface DietStore {
 
   // Async actions
   fetchScreenData: (date?: string) => Promise<void>;
+  fetchMealDays: () => Promise<void>;
+  purchaseItem: (purchase: Purchase) => Promise<void>;
   uploadPDFs: (uris: string[]) => Promise<void>;
 }
 
@@ -49,7 +52,7 @@ export const useStore = create<DietStore>((set, get) => ({
   screenData: null,
   isLoading: false,
   error: null,
-  apiBaseUrl: 'http://10.0.0.225:3000',
+  apiBaseUrl: 'https://diet-z4vm.onrender.com',
 
   // Synchronous actions
   setMealDays: (days) => set({ mealDays: days }),
@@ -78,6 +81,39 @@ export const useStore = create<DietStore>((set, get) => ({
       set({ screenData: data, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error fetching screen data';
+      set({ error: message, isLoading: false });
+    }
+  },
+
+  // Async: fetch full meal days from backend
+  fetchMealDays: async () => {
+    const { apiBaseUrl } = get();
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/meals`);
+      if (!response.ok) return;
+      const data = await response.json();
+      set({ mealDays: data.meal_days ?? [] });
+    } catch {
+      // silently fail — screen data is the primary source
+    }
+  },
+
+  // Async: record a purchase and refresh inventory
+  purchaseItem: async (purchase: Purchase) => {
+    const { apiBaseUrl } = get();
+    set({ isLoading: true, error: null });
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/inventory/purchase`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(purchase),
+      });
+      if (!response.ok) {
+        throw new Error(`Purchase failed with status ${response.status}`);
+      }
+      await get().fetchScreenData();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error registrando compra';
       set({ error: message, isLoading: false });
     }
   },
