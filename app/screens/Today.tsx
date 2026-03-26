@@ -166,7 +166,16 @@ export default function Today() {
       <View style={styles.topBar}>
         <View>
           <Text style={styles.screenTitle}>Hoy</Text>
-          <Text style={styles.screenDate}>{todayDateString()}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={styles.screenDate}>{todayDateString()}</Text>
+            {todayData?.template_label && (
+              <View style={{ backgroundColor: '#2D6A4F', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }}>
+                  Plantilla {todayData.template_label}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
         <TouchableOpacity
           style={[styles.refreshBtn, isLoading && styles.refreshBtnDisabled]}

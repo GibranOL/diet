@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useStore } from '../store/useStore';
-import { MealsStackParamList, Meal, Dish, RawIngredient } from '../types/index';
+import { MealsStackParamList, Meal, Dish, RawIngredient, MealTemplate } from '../types/index';
 
 const MEAL_EMOJI: Record<string, string> = {
   'Al despertar': '🌅',
@@ -68,12 +68,18 @@ function MealSection({ meal }: { meal: Meal }) {
 export default function MealDetail() {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<MealsStackParamList, 'MealDetail'>>();
-  const { date } = route.params;
-  const { mealDays } = useStore();
+  const { templateId, date } = route.params;
+  const { templates, mealDays } = useStore();
 
-  const mealDay = mealDays.find((d) => d.date === date);
+  // Find template by ID, or fall back to mealDays by date
+  const template = templates.find((t) => t.id === templateId);
+  const mealDay = template
+    ? { meals: template.meals, raw_date_str: template.raw_date_str, confidence: template.confidence, warnings: template.warnings }
+    : mealDays.find((d) => d.date === date);
 
-  const displayDate = mealDay?.raw_date_str ?? date;
+  const displayDate = template
+    ? `Plantilla ${template.label}`
+    : mealDay?.raw_date_str ?? date ?? 'Sin fecha';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -90,7 +96,7 @@ export default function MealDetail() {
           <Text style={styles.emptyEmoji}>📅</Text>
           <Text style={styles.emptyTitle}>Sin plan para este día</Text>
           <Text style={styles.emptyBody}>
-            No hay comidas registradas para {date}.
+            No hay comidas registradas para esta plantilla.
           </Text>
         </View>
       ) : (

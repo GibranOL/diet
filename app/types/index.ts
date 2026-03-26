@@ -40,6 +40,34 @@ export interface ParsedMealDay {
   warnings: string[];
 }
 
+// ─── Meal Template Types ──────────────────────────────────
+
+export interface MealTemplate {
+  id: string;
+  label: string;
+  source_pdf_name: string;
+  raw_date_str: string;
+  meals: Meal[];
+  confidence: number;
+  warnings: string[];
+  uploaded_at: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export interface RotationConfig {
+  template_order: string[];  // template IDs in rotation order
+  start_date: string;        // YYYY-MM-DD
+  rest_days: number[];       // 0=Mon..6=Sun, default [6] (Sunday)
+}
+
+export interface RotationDay {
+  date: string;
+  template_id: string;
+  template_label: string;
+  meals: Meal[];
+}
+
 // ─── Ingredient Normalizer Types ────────────────────────────
 
 export type IngredientCategory =
@@ -325,6 +353,7 @@ export interface MobileScreenData {
 export interface TodayScreenData {
   date: string;
   day_number: number;
+  template_label?: string;
   cooking_section: {
     estimated_time_minutes: number;
     start_button: boolean;
@@ -412,6 +441,16 @@ export interface MobileInventoryItem {
 export interface MealsScreenData {
   current_week: WeekDaySummary[];
   all_21_days: DaySummary[];
+  all_templates: TemplateSummary[];
+  rotation_preview: RotationDay[];
+}
+
+export interface TemplateSummary {
+  id: string;
+  label: string;
+  meals_summary: string;
+  is_active: boolean;
+  uploaded_at: string;
 }
 
 export interface WeekDaySummary {
@@ -442,5 +481,5 @@ export interface UploadPDFScreenData {
 
 export type MealsStackParamList = {
   MealsMain: undefined;
-  MealDetail: { date: string };
+  MealDetail: { templateId: string; date?: string };
 };

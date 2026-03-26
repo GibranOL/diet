@@ -6,6 +6,9 @@ import {
   CookingSession,
   UserPreferences,
   MobileScreenData,
+  MealTemplate,
+  RotationConfig,
+  RotationDay,
   Purchase,
 } from '../types/index';
 
@@ -17,6 +20,9 @@ interface DietStore {
   cookingSession: CookingSession | null;
   userPreferences: UserPreferences;
   screenData: MobileScreenData | null;
+  templates: MealTemplate[];
+  rotationConfig: RotationConfig | null;
+  rotationPreview: RotationDay[];
   isLoading: boolean;
   error: string | null;
   apiBaseUrl: string;
@@ -50,6 +56,9 @@ export const useStore = create<DietStore>((set, get) => ({
     theme: 'light',
   },
   screenData: null,
+  templates: [],
+  rotationConfig: null,
+  rotationPreview: [],
   isLoading: false,
   error: null,
   apiBaseUrl: 'https://diet-z4vm.onrender.com',
@@ -85,14 +94,19 @@ export const useStore = create<DietStore>((set, get) => ({
     }
   },
 
-  // Async: fetch full meal days from backend
+  // Async: fetch templates, rotation, and meal days from backend
   fetchMealDays: async () => {
     const { apiBaseUrl } = get();
     try {
       const response = await fetch(`${apiBaseUrl}/api/meals`);
       if (!response.ok) return;
       const data = await response.json();
-      set({ mealDays: data.meal_days ?? [] });
+      set({
+        mealDays: data.meal_days ?? [],
+        templates: data.templates ?? [],
+        rotationConfig: data.rotation_config ?? null,
+        rotationPreview: data.rotation_preview ?? [],
+      });
     } catch {
       // silently fail — screen data is the primary source
     }
@@ -149,8 +163,8 @@ export const useStore = create<DietStore>((set, get) => ({
         throw new Error(`Upload failed with status ${response.status}`);
       }
 
-      // After a successful upload, refresh screen data so the UI reflects the new plan
-      await get().fetchScreenData();
+      // After a successful upload, refresh all data
+      await Promise.all([get().fetchScreenData(), get().fetchMealDays()]);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error uploading PDFs';
       set({ error: message, isLoading: false });

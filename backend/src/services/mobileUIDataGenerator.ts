@@ -36,6 +36,8 @@ import type {
   AlertAction,
   InventoryStatus,
   IngredientCategory,
+  TemplateSummary,
+  RotationDay,
 } from "../types/index";
 
 // ─── Meal Time Lookup ────────────────────────────────────────
@@ -385,6 +387,8 @@ export function generateMealsScreen(mealDays: ParsedMealDay[]): MealsScreenData 
     return {
       current_week: currentWeek,
       all_21_days: all21Days,
+      all_templates: [], // populated by api.ts after generation
+      rotation_preview: [], // populated by api.ts after generation
     };
   } catch (error) {
     throw new Error(
